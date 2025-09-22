@@ -1,0 +1,8 @@
+O que acontece com a ordem das mensagens exibidas?
+As mensagens não são exibidas em uma ordem estritamente sequencial (primeiro todas as 5 da função normal, depois todas as 5 da corrotina). Em vez disso, elas se intercalam ao longo do tempo.
+
+Por que as mensagens da corrotina e da função normal se intercalam?
+O comando go escrever("Corrotina") inicia a execução de escrever("Corrotina") em uma linha de execução (thread) diferente da linha de execução principal, permitindo que ambas as funções (escrever("Corrotina") e escrever("Função normal")) executem concorrentemente. O sistema operacional (ou o escalonador da linguagem, em concorrência lógica) alterna entre essas duas linhas de execução, resultando na intercalação das saídas.
+
+Relacione esse comportamento com a definição de Corrotinas estudada no Capítulo 9.
+ As corrotinas (Coroutines) são um tipo especial de subprograma que, em vez de ter um relacionamento mestre-escravo como os subprogramas convencionais, usam um modelo de controle simétrico. Elas possuem vários pontos de entrada e usam o comando resume em vez de call. O comportamento de execução intercalada é característico das corrotinas, que permitem a execução intercalada de subprogramas. Embora Lua seja mencionada como uma linguagem que suporta corrotinas integralmente, o programa Go demonstra a concorrência lógica que se assemelha à execução intercalada das corrotinas, onde apenas uma está em execução em um dado momento, mas o controle é transferido entre elas.
