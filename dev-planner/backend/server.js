@@ -1,74 +1,86 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
-
 const app = express();
+const PORT = 3001;
+
 app.use(cors());
 app.use(express.json());
 
-const DB_FILE = './db.json';
+const DB_PATH = './db.json';
 
-const loadDB = () => JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-const saveDB = (data) => fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+// Ler banco
+const readDB = () => JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
 
-// ---- ROTAS DE PROJETOS ----
+// Salvar banco
+const writeDB = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 
-// Lista todos os projetos
+// Listar projetos
 app.get('/projects', (req, res) => {
-  const db = loadDB();
+  const db = readDB();
   res.json(db.projects);
 });
 
-// Busca um projeto por ID
+// Obter projeto por ID
 app.get('/projects/:id', (req, res) => {
-  const db = loadDB();
+  const db = readDB();
   const project = db.projects.find(p => p.id == req.params.id);
-  if (!project) return res.status(404).send('Projeto não encontrado');
+  if (!project) return res.status(404).json({ error: 'Projeto não encontrado' });
   res.json(project);
 });
 
-// Cria um novo projeto
+// Criar projeto
 app.post('/projects', (req, res) => {
-  const db = loadDB();
-  const newProject = { id: Date.now(), name: req.body.name, tasks: [] };
+  const db = readDB();
+  const newProject = {
+    id: Date.now(),
+    name: req.body.name,
+    tasks: [],
+  };
   db.projects.push(newProject);
-  saveDB(db);
-  res.status(201).json(newProject);
+  writeDB(db);
+  res.json(newProject);
 });
 
-// ---- ROTAS DE TAREFAS DENTRO DE UM PROJETO ----
-
-// Adiciona nova tarefa
+// Criar tarefa
 app.post('/projects/:id/tasks', (req, res) => {
-  const db = loadDB();
+  const db = readDB();
   const project = db.projects.find(p => p.id == req.params.id);
-  if (!project) return res.status(404).send('Projeto não encontrado');
-  const newTask = { id: Date.now(), ...req.body };
+  if (!project) return res.status(404).json({ error: 'Projeto não encontrado' });
+
+  const newTask = {
+    id: Date.now(),
+    title: req.body.title,
+    status: req.body.status || 'A Fazer',
+  };
   project.tasks.push(newTask);
-  saveDB(db);
-  res.status(201).json(newTask);
+  writeDB(db);
+  res.json(newTask);
 });
 
-// Atualiza tarefa
+// Atualizar tarefa (mover de coluna)
 app.put('/projects/:id/tasks/:taskId', (req, res) => {
-  const db = loadDB();
+  const db = readDB();
   const project = db.projects.find(p => p.id == req.params.id);
-  if (!project) return res.status(404).send('Projeto não encontrado');
-  const index = project.tasks.findIndex(t => t.id == req.params.taskId);
-  if (index === -1) return res.status(404).send('Tarefa não encontrada');
-  project.tasks[index] = { ...project.tasks[index], ...req.body };
-  saveDB(db);
-  res.json(project.tasks[index]);
+  if (!project) return res.status(404).json({ error: 'Projeto não encontrado' });
+
+  const task = project.tasks.find(t => t.id == req.params.taskId);
+  if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+
+  task.status = req.body.status || task.status;
+  writeDB(db);
+  res.json(task);
 });
 
 // Excluir tarefa
 app.delete('/projects/:id/tasks/:taskId', (req, res) => {
-  const db = loadDB();
+  const db = readDB();
   const project = db.projects.find(p => p.id == req.params.id);
-  if (!project) return res.status(404).send('Projeto não encontrado');
+  if (!project) return res.status(404).json({ error: 'Projeto não encontrado' });
+
   project.tasks = project.tasks.filter(t => t.id != req.params.taskId);
-  saveDB(db);
-  res.status(204).send();
+  writeDB(db);
+  res.json({ success: true });
 });
 
-app.listen(3001, () => console.log('✅ Backend rodando em http://localhost:3001'));
+app.listen(PORT, () => console.log(`✅ Servidor rodando em http://localhost:${PORT}`));

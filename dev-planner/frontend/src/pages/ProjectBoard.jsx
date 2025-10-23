@@ -1,67 +1,70 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import KanbanBoard from "../components/KanbanBoard";
 
-export default function Projects() {
-  const [projects, setProjects] = useState([]);
-  const [newProject, setNewProject] = useState("");
-  const navigate = useNavigate();
+export default function ProjectBoard() {
+  const { id } = useParams();
+  const [project, setProject] = useState(null);
+  const [newTask, setNewTask] = useState("");
 
-  const fetchProjects = async () => {
-    const res = await fetch("http://localhost:3001/projects");
+  const fetchProject = async () => {
+    const res = await fetch(`http://localhost:3001/projects/${id}`);
     const data = await res.json();
-    setProjects(data);
+    setProject(data);
   };
 
-  const addProject = async () => {
-    if (!newProject.trim()) return;
-    await fetch("http://localhost:3001/projects", {
+  const addTask = async () => {
+    if (!newTask.trim()) return;
+    await fetch(`http://localhost:3001/projects/${id}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newProject }),
+      body: JSON.stringify({ title: newTask, status: "A Fazer" }),
     });
-    setNewProject("");
-    fetchProjects();
+    setNewTask("");
+    fetchProject();
   };
 
-  useEffect(() => { fetchProjects(); }, []);
+  const updateTask = async (taskId, status) => {
+    await fetch(`http://localhost:3001/projects/${id}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    fetchProject();
+  };
+
+  const deleteTask = async (taskId) => {
+    await fetch(`http://localhost:3001/projects/${id}/tasks/${taskId}`, { method: "DELETE" });
+    fetchProject();
+  };
+
+  useEffect(() => { fetchProject(); }, [id]);
+
+  if (!project) return <p className="text-center mt-10">Carregando...</p>;
 
   return (
-    <div className="min-h-screen p-8 flex flex-col items-center">
-      <h1 className="text-4xl font-extrabold text-primary mb-6 tracking-tight">
-        🎯 Dev Planner
-      </h1>
+    <div className="p-8 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-primary">{project.name}</h1>
+        <Link to="/" className="text-blue-600 hover:underline">← Voltar</Link>
+      </div>
 
-      <div className="flex mb-8 w-full max-w-lg">
+      <div className="flex justify-center mb-6">
         <input
-          value={newProject}
-          onChange={(e) => setNewProject(e.target.value)}
-          placeholder="Novo projeto..."
-          className="flex-1 border-2 border-blue-200 p-3 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary transition"
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          placeholder="Nova tarefa..."
+          className="border-2 border-blue-200 p-3 rounded-l-lg focus:ring-2 focus:ring-primary transition w-1/2"
         />
         <button
-          onClick={addProject}
+          onClick={addTask}
           className="bg-gradient-to-r from-primary to-accent text-white px-5 rounded-r-lg hover:opacity-90 transition"
         >
           Adicionar
         </button>
       </div>
 
-      <div className="grid gap-4 w-full max-w-3xl">
-        {projects.map((p) => (
-          <div
-            key={p.id}
-            className="bg-white/80 backdrop-blur-sm shadow-md rounded-xl p-5 flex justify-between items-center hover:shadow-lg hover:-translate-y-1 transition-all"
-          >
-            <span className="font-semibold text-gray-800 text-lg">{p.name}</span>
-            <button
-              onClick={() => navigate(`/project/${p.id}`)}
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              Entrar
-            </button>
-          </div>
-        ))}
-      </div>
+      <KanbanBoard tasks={project.tasks} onMove={updateTask} onDelete={deleteTask} />
     </div>
   );
 }

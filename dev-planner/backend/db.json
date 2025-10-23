@@ -4,17 +4,37 @@
       "id": 1,
       "name": "Trabalho MongoDB",
       "tasks": [
-        { "id": 101, "title": "Limpar dados", "status": "A Fazer" },
-        { "id": 102, "title": "Rever requisito 1", "status": "A Fazer" },
-        { "id": 103, "title": "Formatar documento de entrega", "status": "A Fazer" }
+        {
+          "id": 101,
+          "title": "Limpar dados",
+          "status": "A Fazer"
+        },
+        {
+          "id": 102,
+          "title": "Rever requisito 1",
+          "status": "A Fazer"
+        },
+        {
+          "id": 103,
+          "title": "Formatar documento de entrega",
+          "status": "A Fazer"
+        }
       ]
     },
     {
       "id": 2,
       "name": "Trabalho de testes",
       "tasks": [
-        { "id": 201, "title": "Rever modelo TDD", "status": "A Fazer" },
-        { "id": 202, "title": "Criar testes unitários", "status": "A Fazer" }
+        {
+          "id": 201,
+          "title": "Rever modelo TDD",
+          "status": "A Fazer"
+        },
+        {
+          "id": 202,
+          "title": "Criar testes unitários",
+          "status": "A Fazer"
+        }
       ]
     }
   ]
